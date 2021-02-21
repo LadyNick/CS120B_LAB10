@@ -11,6 +11,7 @@
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #include "keypad.h"
+#include "scheduler.h"
 #endif
 
 int main(void) {
