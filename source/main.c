@@ -17,15 +17,18 @@
 #endif
 
 unsigned char x;
-unsigned char y;
+unsigned char y = 0;
+unsigned char count = 0;
+unsigned char unlocked = 0;
 unsigned char keypad;
-unsigned char button;
+unsigned char locked = 0;
+unsigned char B7;
 
-enum Keypad_States{output_keypad}Keypad_State;
+enum Keypad_States{keypadnum,release}Keypad_State;
 int KeypadTick(int state){
 	switch(Keypad_State){
 	
-	case output_keypad:
+	case keypadnum:
 		x = GetKeypadKey();
 		switch(x){
 			 case '\0': keypad = 0X1F; break;
@@ -45,9 +48,64 @@ int KeypadTick(int state){
 		            case '*': keypad = 0X0E; break;
 			    case '0': keypad = 0X00; break;
 			    case '#': keypad = 0X0F; break;
-			    default: PORTB = 0X1B; break; //should never occur
+			    default: keypad = 0X1B; break; //should never occur
 		}
-		Keypad_State = output_keypad;
+		if((keypad == 0x1b) && (count == 0)){
+			count = 1;
+		}
+		else{
+			unlocked = 0;
+			count = 0;
+		}
+		if((count == 1) && (keypad == 0x01)){
+			count = 2;
+		}
+		else{
+			count = 0;
+		}
+		if((count == 2) && (keypad == 0x02)){
+			count = 3;
+		}
+		else{
+			count = 0;
+		}
+		if((count == 3) && (keypad = 0x03)){
+			count = 4;
+		}
+		else{
+			count = 0;
+		}
+		if((count == 4) && (keypad == 0x04)){
+			count = 5;
+		}
+		else{
+			count = 0;
+		}
+		if((count == 5) && (keypad == 0x05)){
+			unlocked = 1; 	
+		}
+		else{
+			unlocked = 0;
+		}
+		if(keypad != 0x1f){
+			Keypad_State = release;
+		}
+		else{
+		Keypad_State = keypadnum;
+		}
+		break;
+	case release:
+		if((keypad != 0x1f) && (y != 0)){
+			y = 0;
+			Keypad_State = keypadnum;
+		}
+		else if(keypad == 0x1f){
+			y = 1;
+			Keypad_State = release;
+		}
+		else{
+			Keypad_State = release;
+		}
 		break;
 	default:
 		Keypad_State = output_keypad;
@@ -57,28 +115,35 @@ int KeypadTick(int state){
 
 }
 
-enum Button_States{buttonpress}Button_State;
-int ButtonPressTick(int Button_State){
-	switch(Button_State){
-		case buttonpress: 
-			y = GetKeypadKey();
-			if(x == '\0'){
-				button = 0;
+enum Lock_States{lock}Lock_State;
+int LockTick(int Lock_State){
+	switch(Lock_State){
+		case lock:
+			if(B7 == 1){
+				locked = 1;
 			}
-			else{ button = 1;}
+			Lock_State = lock;
 			break;
-		default: Button_State = buttonpress; break;
+		default: Lock_State = lock; break;
 	}
-	return Button_State;
+	return Lock_State;
 }
 
 
 enum Combine_States{combine}Combine_State;
 int CombineTick(int Combine_State){
 	unsigned char output;
+	unsigned char lock;
 
 	switch(Combine_State){
-		case combine: output = keypad | (button << 7); break;
+		case combine:
+		       if(unlocked){
+		       		lock = 0;
+		 	}
+		       else if(locked){
+	 			lock = 1;
+			}			
+			output = keypad | (lock << 7); break;
 		default: Combine_State = combine; break;
 	}
 	PORTB = output;
@@ -89,7 +154,7 @@ int CombineTick(int Combine_State){
 int main(void) {
     
 	unsigned char x;
-	DDRB = 0XFF; PORTB = 0X00;
+	DDRB = 0XEF; PORTB = 0X80;
 	DDRC = 0XF0; PORTC = 0X0F;
 
 	static task task1, task2, task3;
@@ -100,15 +165,15 @@ int main(void) {
 	
 	// TASK1: Keypad buttons
 	task1.state = start;
-	task1.period = 50;
+	task1.period = 200;
 	task1.elapsedTime = task1.period;
 	task1.TickFct = &KeypadTick;
 
-	//TASK2: Button press
+	//TASK2: Lock
 	task2.state = start;
-        task2.period = 50;
+        task2.period = 200;
         task2.elapsedTime = task2.period;
-        task2.TickFct = &ButtonPressTick;
+        task2.TickFct = &LockTick;
 
 	//TASK3: Combine
 	task3.state = start;
@@ -125,7 +190,8 @@ int main(void) {
 	TimerOn();
 
 	unsigned short i;
-        while(1){	
+        while(1){
+		B7 = PORTB >> 7;
 		for(i=0; i<numTasks; i++){ //Scheduler code
 			if(tasks[i]->elapsedTime == tasks[i]->period){
 				tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
