@@ -14,6 +14,76 @@
 #include "scheduler.h"
 #endif
 
+unsigned char x;
+unsigned char y;
+unsigned char keypad;
+unsigned char button;
+
+enum Keypad_States{output_keypad}Keypad_State;
+int KeypadTick(int state){
+	switch(Keypad_State){
+	
+	case output_keypad:
+		x = GetKeypadKey();
+		switch(x){
+			 case '\0': keypad = 0X1F; break;
+			    case '1': keypad = 0X01; break;
+		    	    case '2': keypad = 0X02; break;
+			    case '3': keypad = 0X03; break;
+			    case '4': keypad = 0X04; break;
+			    case '5': keypad = 0X05; break;
+			    case '6': keypad = 0X06; break;
+			    case '7': keypad = 0X07; break;
+			    case '8': keypad = 0X08; break;
+			    case '9': keypad = 0X09; break;
+			    case 'A': keypad = 0X0A; break;
+			    case 'B': keypad = 0X0B; break;
+			    case 'C': keypad = 0X0C; break;
+			    case 'D': keypad = 0X0D; break;
+		            case '*': keypad = 0X0E; break;
+			    case '0': keypad = 0X00; break;
+			    case '#': keypad = 0X0F; break;
+			    default: PORTB = 0X1B; break; //should never occur
+		}
+		Keypad_State = output_keypad;
+		break;
+	default:
+		Keypad_State = output_keypad;
+		break;
+	}
+	return Keypad_State;
+
+}
+
+enum Button_States{buttonpress}Button_State;
+int ButtonPressTick(int Button_State){
+	switch(Button_State){
+		case buttonpress: 
+			y = GetKeypadKey();
+			if(x == '\0'){
+				button = 0;
+			}
+			else{ button = 1;}
+			break;
+		default: Button_State = buttonpress; break;
+	}
+	return Button_State;
+}
+
+
+enum Combine_States{combine}Combine_State;
+int CombineTick(int Combine_State){
+	unsigned char output;
+
+	switch(Combine_State){
+		case combine: ouput = keypad | (button << 6); break;
+		default: state = combine; break;
+	}
+	PORTB = output;
+	return Combine_State;
+}
+
+
 int main(void) {
     
 	unsigned char x;
