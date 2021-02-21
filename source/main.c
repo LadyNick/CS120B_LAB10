@@ -10,13 +10,22 @@
 #include <avr/io.h>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
+#include "keypad.h"
 #endif
 
 int main(void) {
-    /* Insert DDR and PORT initializations */
+    
+	unsigned char x;
+	DDRB = 0XFF; PORTB = 0X00;
+	DDRC = 0XF0; PORTC = 0X0F;
 
-    /* Insert your solution below */
+    
     while (1) {
+	    x = GetKeypadKey();
+	    switch(x){
+		    case '\0': PORTB = 0X1F; break;
+
+	    }
 
     }
     return 1;
