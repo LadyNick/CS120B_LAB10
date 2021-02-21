@@ -19,31 +19,50 @@ int main(void) {
 	DDRB = 0XFF; PORTB = 0X00;
 	DDRC = 0XF0; PORTC = 0X0F;
 
-    
-    while (1) {
-	    x = GetKeypadKey();
-	    switch(x){
-		    case '\0': PORTB = 0X1F; break;		    	    
-			    case '1': PORTB = 0X01; break;
-		    	    case '2': PORT1B= 0X02; break;
-			    case '3': PORTB = 0X03; break;
-			    case '4': PORTB = 0X04; break;
-			    case '5': PORTB = 0X05; break;
-			    case '6': PORTB = 0X06; break;
-			    case '7': PORTB = 0X07; break;
-			    case '8': PORTB = 0X08; break;
-			    case '9': PORTB = 0X09; break;
-			    case 'A': PORTB = 0X0A; break;
-			    case 'B': PORTB = 0X0B; break;
-			    case 'C': PORTB = 0X0C; break;
-			    case 'D': PORTB = 0X0D; break;
-		            case '*': PORTB = 0X0E; break;      
-			    case '0': PORTB = 0X00; break;
-			    case '#': PORTB = 0X0F; break;
-			    default: PORTB = 0X1B; break; //should never occur
+	static _task task1, task2, task3;
+	_task *tasks[] = {&task1, &task2, &task3};
+	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
-	    }
+	const char start = -1;
+	
+	// TASK1: Keypad buttons
+	task1.state = start;
+	task1.period = 50;
+	task1.elapsedTIme = task1.period;
+	task1.TIckFct = &KeypadTick;
 
-    }
-    return 1;
+	//TASK2: Button press
+	task2.state = start;
+        task2.period = 50;
+        task2.elapsedTIme = task2.period;
+        task2.TIckFct = &ButtonPressTick;
+
+	//TASK3: Combine
+	task3.state = start;
+        task3.period = 50;
+        task3.elapsedTIme = task3.period;
+        task3.TIckFct = &CombineTick;
+
+	unsigned long GCD = tasks[0]->period;
+	for(unsigned i=1; i<numTasks; i++) {
+		GCD = findGCD(GCD,tasks[i]->period);
+	}
+
+	TimerSet(GCD);
+	TimerOn();
+
+	unsigned short i;
+        while(1){	
+		for(i=0; i<numTasks; i++){ //Scheduler code
+			if(tasks[i]->elapsedTIme == tasks[i]->period){
+				tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->elapsedTime = 0;
+			}
+			tasks[i]->elapsedTime += GCD;
+		}
+		while(!TimerFlag);
+		TimerFlag = 0;
+	}
+	return 0;
+
 }
