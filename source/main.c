@@ -50,7 +50,7 @@ int KeypadTick(int state){
 			    case '#': keypad = 0X0F; break;
 			    default: keypad = 0X1B; break; //should never occur
 		}
-		if(keypad == 0x1b){
+		if(keypad == 0x0F){
 			count = 1;
 		}
 		else{
@@ -158,7 +158,7 @@ int CombineTick(int Combine_State){
 		default:Combine_State = combine; break;
 			 
 	}
-	PORTB = output;
+//	PORTB = output;
 	return Combine_State;
 }
 
