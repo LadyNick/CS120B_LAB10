@@ -82,9 +82,10 @@ int KeypadTick(int Keypad_State){
 		else{
 			unlocked = 0;
 		}*/
+		PORTB = count;
 		Keypad_State = release;
 		break;
-	release:
+	case release:
 		if((GetKeypadKey() != '\0') && (y != 0)){
 			y = 0;
 			Keypad_State = input;
@@ -107,7 +108,7 @@ int KeypadTick(int Keypad_State){
 
 enum Button_States{buttonpress}Button_State;
 int ButtonPressTick(int Button_State){
-	switch(Button_State){
+/*	switch(Button_State){
 		case buttonpress: 
 			y = GetKeypadKey();
 			if(x == '\0'){
@@ -116,27 +117,26 @@ int ButtonPressTick(int Button_State){
 			else{ button = 1;}
 			break;
 		default: Button_State = buttonpress; break;
-	}
+	} */
 	return Button_State;
 }
 
 
 enum Combine_States{combine}Combine_State;
 int CombineTick(int Combine_State){
-	unsigned char output;
+/*	unsigned char output;
 
 	switch(Combine_State){
 		case combine: output = keypad | (button << 7); break;
 		default: Combine_State = combine; break;
-	}
-	PORTB = count;
+	}*/
+//	PORTB = count;
 	return Combine_State;
 }
 
 
 int main(void) {
     
-	unsigned char x;
 	DDRB = 0XFF; PORTB = 0x00;
 //	DDRB = 0x7F; PORTB = 0X80;
 	DDRC = 0XF0; PORTC = 0X0F;
