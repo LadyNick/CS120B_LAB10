@@ -1,7 +1,7 @@
 /*	Author: Nicole Navarro
  *  Partner(s) Name: 
  *	Lab Section: 21
- *	Assignment: Lab #10  Exercise #1
+ *	Assignment: Lab #10  Exercise #2
  *	Video: https://youtu.be/XTpwnW_bEME
  *	Exercise Description: [optional - include for your own benefit]
  *
