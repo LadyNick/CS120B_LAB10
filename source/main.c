@@ -30,7 +30,7 @@ int KeypadTick(int state){
 	unsigned char x;
 	case keypadnum:
 		x = GetKeypadKey();
-		/*switch(x){
+		switch(x){
 			 case '\0': keypad = 0X1F; break;
 			    case '1': keypad = 0X01; break;
 		    	    case '2': keypad = 0X02; break;
@@ -49,38 +49,38 @@ int KeypadTick(int state){
 			    case '0': keypad = 0X00; break;
 			    case '#': keypad = 0X0F; break;
 			    default: keypad = 0X1B; break; //should never occur
-		} */
-		if(x == '#'){
+		}
+		if(keypad == 0x0F){
 			count = 1;
 		}
 		else{
 			count = 0;
 		}
-		if((count == 1) && (x == '1')){
+		if((count == 1) && (keypad == 0x01)){
 			count = 2;
 		}
 		else{
 			count = 0;
 		}
-		if((count == 2) && (x == '2')){
+		if((count == 2) && (keypad == 0x02)){
 			count = 3;
 		}
 		else{
 			count = 0;
 		}
-		if((count == 3) && (x= '3')){
+		if((count == 3) && (keypad = 0x03)){
 			count = 4;
 		}
 		else{
 			count = 0;
 		}
-		if((count == 4) && (x == '4')){
+		if((count == 4) && (keypad == 0x04)){
 			count = 5;
 		}
 		else{
 			count = 0;
 		}
-		if((count == 5) && (x == '5')){
+		if((count == 5) && (keypad == 0x05)){
 			unlocked = 1; 	
 		}
 		else{
@@ -89,11 +89,13 @@ int KeypadTick(int state){
 			Keypad_State = release;
 		break;
 	case release:
-		if((x != 0x1f) && (y != 0)){
+		x = GetKeypadKey();
+
+		if((x != '\0') && (y != 0)){
 			y = 0;
 			Keypad_State = keypadnum;
 		}
-		else if(keypad == 0x1f){
+		else if(x == '\0'){
 			y = 1;
 			Keypad_State = release;
 		}
