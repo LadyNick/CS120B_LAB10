@@ -16,7 +16,7 @@
 #include "timer.h"
 #endif
 
-unsigned char x;
+//unsigned char x;
 unsigned char y = 0;
 unsigned char count = 0;
 unsigned char unlocked = 0;
@@ -27,7 +27,7 @@ unsigned char B7;
 enum Keypad_States{keypadnum,release}Keypad_State;
 int KeypadTick(int state){
 	switch(Keypad_State){
-	
+	unsigned char x;
 	case keypadnum:
 		x = GetKeypadKey();
 		/*switch(x){
@@ -86,15 +86,10 @@ int KeypadTick(int state){
 		else{
 			unlocked = 0;
 		}
-		if(x != '\0'){
 			Keypad_State = release;
-		}
-		else{
-		Keypad_State = keypadnum;
-		}
 		break;
 	case release:
-		if((keypad != 0x1f) && (y != 0)){
+		if((x != 0x1f) && (y != 0)){
 			y = 0;
 			Keypad_State = keypadnum;
 		}
@@ -158,7 +153,7 @@ int CombineTick(int Combine_State){
 		default:Combine_State = combine; break;
 			 
 	}
-//	PORTB = output;
+	PORTB = output;
 	return Combine_State;
 }
 
