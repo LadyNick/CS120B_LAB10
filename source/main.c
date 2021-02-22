@@ -21,7 +21,7 @@ unsigned char y = 0;
 unsigned char count = 0;
 unsigned char unlocked = 0;
 unsigned char keypad;
-unsigned char locked = 0;
+unsigned char locked = 1;
 unsigned char B7;
 
 enum Keypad_States{keypadnum,release}Keypad_State;
@@ -50,11 +50,10 @@ int KeypadTick(int state){
 			    case '#': keypad = 0X0F; break;
 			    default: keypad = 0X1B; break; //should never occur
 		}
-		if((keypad == 0x1b) && (count == 0)){
+		if(keypad == 0x1b){
 			count = 1;
 		}
 		else{
-			unlocked = 0;
 			count = 0;
 		}
 		if((count == 1) && (keypad == 0x01)){
@@ -108,7 +107,7 @@ int KeypadTick(int state){
 		}
 		break;
 	default:
-		Keypad_State = output_keypad;
+		Keypad_State = keypadnum;
 		break;
 	}
 	return Keypad_State;
@@ -132,19 +131,32 @@ int LockTick(int Lock_State){
 
 enum Combine_States{combine}Combine_State;
 int CombineTick(int Combine_State){
-	unsigned char output;
+	unsigned char output = 0;
 	unsigned char lock;
+	unsigned char c;
+	unsigned char press = 0;
 
 	switch(Combine_State){
 		case combine:
+			c = GetKeypadKey();
+			if(c != '\0'){
+				press = 2;
+			}
+			else{
+				press = 0;
+			} 
 		       if(unlocked){
-		       		lock = 0;
+		       		lock = 1;
+				press = press + 4;
 		 	}
 		       else if(locked){
-	 			lock = 1;
-			}			
-			output = keypad | (lock << 7); break;
-		default: Combine_State = combine; break;
+	 			lock = 0;
+				press = press + 8;
+			}
+			output = (lock + press) | (count << 4); 
+			break;
+		default:Combine_State = combine; break;
+			 
 	}
 	PORTB = output;
 	return Combine_State;
@@ -153,8 +165,7 @@ int CombineTick(int Combine_State){
 
 int main(void) {
     
-	unsigned char x;
-	DDRB = 0XEF; PORTB = 0X80;
+	DDRB = 0X7f; PORTB = 0X80;
 	DDRC = 0XF0; PORTC = 0X0F;
 
 	static task task1, task2, task3;
@@ -165,13 +176,13 @@ int main(void) {
 	
 	// TASK1: Keypad buttons
 	task1.state = start;
-	task1.period = 200;
+	task1.period = 50;
 	task1.elapsedTime = task1.period;
 	task1.TickFct = &KeypadTick;
 
 	//TASK2: Lock
 	task2.state = start;
-        task2.period = 200;
+        task2.period = 50;
         task2.elapsedTime = task2.period;
         task2.TickFct = &LockTick;
 
@@ -188,6 +199,7 @@ int main(void) {
 
 	TimerSet(GCD);
 	TimerOn();
+
 
 	unsigned short i;
         while(1){
