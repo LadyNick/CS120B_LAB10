@@ -2,7 +2,7 @@
  *  Partner(s) Name: 
  *	Lab Section: 21
  *	Assignment: Lab #10  Exercise #1
- *	Video: https://youtu.be/AbkH4SwXydM
+ *	Video: https://youtu.be/XTpwnW_bEME
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -17,10 +17,10 @@
 #endif
 
 unsigned char x;
-unsigned char y;
+unsigned char y = 0;
 unsigned char keypad;
-unsigned char button;
-
+unsigned char unlocked;
+unsigned char locked = 1;
 unsigned char count = 0;
 
 enum Keypad_States{input,release}Keypad_State;
@@ -47,42 +47,26 @@ int KeypadTick(int Keypad_State){
 		if(keypad == 0x0F){
 			count = 1;
 		}
-		else{
-			count = 0;
-		}
-		if((count == 1) && (keypad == 0x01)){
+		else if((count == 1) && (keypad == 0x01)){
 			count = 2;
 		}
-		else{
-			count = 0;
-		}
-
-
-		/*if((count == 2) && (keypad == 0x02)){
+		else if((count == 2) && (keypad == 0x02)){
 			count = 3;
 		}
-		else{
-			count = 0;
-		}
-		if((count == 3) && (keypad = 0x03)){
+		else if((count == 3) && (keypad = 0x03)){
 			count = 4;
 		}
-		else{
-			count = 0;
-		}
-		if((count == 4) && (keypad == 0x04)){
+		else if((count == 4) && (keypad == 0x04)){
 			count = 5;
 		}
-		else{
+		else if((count == 5) && (keypad == 0x05)){
 			count = 0;
-		}
-		if((count == 5) && (keypad == 0x05)){
 			unlocked = 1; 	
 		}
 		else{
+			count = 0;
 			unlocked = 0;
-		}*/
-		PORTB = count;
+		}
 		Keypad_State = release;
 		break;
 	case release:
@@ -106,39 +90,43 @@ int KeypadTick(int Keypad_State){
 
 }
 
-enum Button_States{buttonpress}Button_State;
-int ButtonPressTick(int Button_State){
-/*	switch(Button_State){
-		case buttonpress: 
-			y = GetKeypadKey();
-			if(x == '\0'){
-				button = 0;
+enum Lock_States{lock}Lock_State;
+int LockTick(int Lock_State){
+	switch(Lock_State){
+		case lock: 
+			if((PINB >> 7) == 1){
+				locked = 1;
 			}
-			else{ button = 1;}
+			Lock_State = lock;
 			break;
-		default: Button_State = buttonpress; break;
-	} */
-	return Button_State;
+		default: Lock_State = lock; break;
+	} 
+	return Lock_State;
 }
 
 
 enum Combine_States{combine}Combine_State;
 int CombineTick(int Combine_State){
-/*	unsigned char output;
+	unsigned char output;
 
 	switch(Combine_State){
-		case combine: output = keypad | (button << 7); break;
+		case combine:
+			if(unlocked){
+				output = 1;
+			}
+			else if(locked){
+				output = 0;
+			}
+			break;
 		default: Combine_State = combine; break;
-	}*/
-//	PORTB = count;
+	}
+	PORTB = output;
 	return Combine_State;
 }
 
 
 int main(void) {
-    
-	DDRB = 0XFF; PORTB = 0x00;
-//	DDRB = 0x7F; PORTB = 0X80;
+    	DDRB = 0x7F; PORTB = 0X80;
 	DDRC = 0XF0; PORTC = 0X0F;
 
 	static task task1, task2, task3;
@@ -157,7 +145,7 @@ int main(void) {
 	task2.state = start;
         task2.period = 50;
         task2.elapsedTime = task2.period;
-        task2.TickFct = &ButtonPressTick;
+        task2.TickFct = &LockTick;
 
 	//TASK3: Combine
 	task3.state = start;
