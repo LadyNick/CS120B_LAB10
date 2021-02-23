@@ -17,6 +17,7 @@
 #endif
 
 unsigned char x;
+unsigned char y = 0;
 unsigned char keypad = 0;
 unsigned char unlocked = 0;
 unsigned char count;
