@@ -31,8 +31,9 @@ unsigned char toggle = 0;
 enum Keypad_States{input,release}Keypad_State;
 int KeypadTick(int Keypad_State){
 	switch(Keypad_State){
-	
+
 	case input:
+
 		x = GetKeypadKey();
 	        if(x == '\0'){ keypad = 0X1F;}
 	 	if(x == '1'){ keypad = 0X01;}
@@ -98,9 +99,9 @@ enum Lock_States{lock}Lock_State;
 int LockTick(int Lock_State){
 	switch(Lock_State){
 		case lock: 
-			if(((~PINB >> 7)>>1)> 1){
-				unlocked = 0;
-			}
+			if(~PINB & 0x80){
+                		unlocked = 0;
+        		}
 			Lock_State = lock;
 			break;
 		default: Lock_State = lock; break;
@@ -113,7 +114,7 @@ int BellTick(int Bell_State){
 
 	switch(Bell_State){
 		case wait_press:
-			toggle = 0;
+	/*		toggle = 0;
 		//	bell = 0;
 		//	counter = 0;
 		//	tuneperiod = 200; //its checking buttonpress every 200 m
@@ -136,7 +137,7 @@ int BellTick(int Bell_State){
 				bell = 0x40;
 			}
 			Bell_State = melody;
-		/*	if( (counter >= 0) && (counter < 5000) ){
+			if( (counter >= 0) && (counter < 5000) ){
 				tuneperiod = 3; 	
 				counter += tuneperiod; //at this point tuneperiod is 3, meaning this will be ticking every 3ms to get a certain sound 
 				//instead of counter increasing once per 3ms, were increasing it 3 times per 3 ms, so that its still counting normally
@@ -170,7 +171,7 @@ int BellTick(int Bell_State){
 			else{
 				Bell_State = melody;
 			}*/
-			break;
+			break; 
 		default: Bell_State = wait_press; break;
 	}
 	return Bell_State;
@@ -183,32 +184,16 @@ int CombineTick(int Combine_State){
 
 	switch(Combine_State){
 		case combine:
-			if(unlocked == 1){
-				output = 1;
-			}
-			if(unlocked == 0){
-				output = 0;
-			}
-		/*	if(locked){
-				if(unlocked){
-				output = 1;
-				}
-			}
-			else if(unlocked){
-				if(locked){
-				output = 0;
-				}
-			}*/
+			PORTB = unlocked;
 			break;
 		default: Combine_State = combine; break;
 	}
-PORTB = output + bell + (A7 << 2) + ((~PINB >> 7) << 1);
 return Combine_State;
 }
 
 
 int main(void) {
-DDRB = 0x7F; PORTB = 0X80;
+DDRB = 0x7F; PORTB = 0X00;
 DDRC = 0XF0; PORTC = 0X0F;
 DDRA = 0X00; PINA = 0XFF;
 
