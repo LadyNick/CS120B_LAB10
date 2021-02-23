@@ -21,7 +21,7 @@ unsigned char x;
 unsigned char y = 0;
 unsigned char keypad = 0;
 unsigned char unlocked = 0;
-unsigned char locked = 1;
+//unsigned char locked = 1;
 unsigned char bell = 0;
 unsigned char tuneperiod = 200;
 unsigned long counter;
@@ -70,7 +70,6 @@ int KeypadTick(int Keypad_State){
 		}
 		else{
 			count = 0;
-			unlocked = 0;
 		}
 		Keypad_State = release;
 		break;
@@ -99,8 +98,8 @@ enum Lock_States{lock}Lock_State;
 int LockTick(int Lock_State){
 	switch(Lock_State){
 		case lock: 
-			if(~(PINB >> 7) == 1){
-				locked = 1;
+			if(((~PINB >> 7)>>1)> 1){
+				unlocked = 0;
 			}
 			Lock_State = lock;
 			break;
@@ -184,16 +183,26 @@ int CombineTick(int Combine_State){
 
 	switch(Combine_State){
 		case combine:
-			if(unlocked){
+			if(unlocked == 1){
 				output = 1;
 			}
-			else if(locked){
+			if(unlocked == 0){
 				output = 0;
 			}
+		/*	if(locked){
+				if(unlocked){
+				output = 1;
+				}
+			}
+			else if(unlocked){
+				if(locked){
+				output = 0;
+				}
+			}*/
 			break;
 		default: Combine_State = combine; break;
 	}
-PORTB = output + bell + (A7 << 2) + (~(PINB >> 7) << 1);
+PORTB = output + bell + (A7 << 2) + ((~PINB >> 7) << 1);
 return Combine_State;
 }
 
