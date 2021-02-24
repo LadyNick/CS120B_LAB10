@@ -223,6 +223,11 @@ task4.period = 1 ;
 task4.elapsedTime = task4.period;
 task4.TickFct = &CombineTick;
 
+//TASK5: Combo Change
+task5.state = start;
+task5.period = 50;
+task5.elapsedTime = task5.period;
+task5.TickFct = &
 	TimerSet(1);
 	TimerOn();
 
